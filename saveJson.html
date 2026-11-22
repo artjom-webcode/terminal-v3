@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Мой редактор</title>
+  </head>
+  <body>
+    <h2>Мой редактор</h2>
+
+    <textarea id="myText" rows="10" cols="50"></textarea>
+
+    <br /><br />
+
+    <button onclick="saveJSON()">Сохранить JSON</button>
+    <button onclick="readJSON()">Прочитать JSON</button>
+
+    <input type="file" id="fileInput" accept=".json,application/json" hidden />
+
+    <script>
+      const textarea = document.getElementById("myText");
+
+      // Загружаем текст при запуске
+      textarea.value = localStorage.getItem("myText") || "";
+
+      // Автоматически сохраняем при вводе
+      textarea.addEventListener("input", function () {
+        localStorage.setItem("myText", textarea.value);
+      });
+
+      // СОХРАНЕНИЕ JSON
+      async function saveJSON() {
+        const data = {
+          text: textarea.value,
+        };
+
+        const blob = JSON.stringify(data, null, 2);
+
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: "myData.json",
+          types: [
+            {
+              description: "JSON файл",
+              accept: {
+                "application/json": [".json"],
+              },
+            },
+          ],
+        });
+
+        const writable = await fileHandle.createWritable();
+
+        await writable.write(blob);
+
+        await writable.close();
+
+        alert("Файл сохранён!");
+      }
+
+      // ЧТЕНИЕ JSON
+      function readJSON() {
+        const fileInput = document.getElementById("fileInput");
+
+        fileInput.click();
+
+        fileInput.onchange = async function () {
+          const file = fileInput.files[0];
+
+          if (!file) return;
+
+          const text = await file.text();
+
+          const data = JSON.parse(text);
+
+          textarea.value = data.text;
+
+          localStorage.setItem("myText", data.text);
+
+          alert("Данные загружены!");
+
+          fileInput.value = "";
+        };
+      }
+    </script>
+  </body>
+</html>
